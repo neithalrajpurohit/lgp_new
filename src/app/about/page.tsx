@@ -55,7 +55,7 @@ export default function AboutPage() {
                 className="rounded-lg"
               />
               <img
-                src="/images/A6E8B0AC-A0D8-43CE-B95A-A6B4AAEFF5E8.jpeg"
+                src="/images/4E1B137A-C6D7-40BD-90D0-C960FA898F7B_1_102_o.jpeg"
                 alt="Our Factory"
                 className="rounded-lg"
               />
