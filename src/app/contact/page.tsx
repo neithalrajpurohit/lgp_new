@@ -96,7 +96,7 @@ export default function ContactPage() {
 
               <div className="mt-8">
                 <a
-                  href="https://wa.me/919876543210"
+                  href="https://wa.me/919940863196"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-3 bg-green-500 text-white px-8 py-4 font-bold uppercase tracking-wider hover:bg-green-600 transition-colors"

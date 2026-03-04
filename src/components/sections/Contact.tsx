@@ -49,8 +49,8 @@ const contactDetails = [
       </svg>
     ),
     label: "Call Us",
-    lines: ["+91 98765 43210", "+91 98765 43211"],
-    href: "tel:+919876543210",
+    lines: ["+91 99408 63196", "+91 9894863196"],
+    href: "tel:+919894863196",
   },
   {
     icon: (
@@ -256,7 +256,7 @@ export default function Contact() {
                 transition={{ duration: 0.8, delay: 0.7 }}
               >
                 <a
-                  href="https://wa.me/919876543210"
+                  href="https://wa.me/919940863196"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group inline-flex items-center gap-4 px-8 py-4 border border-[#25D366]/30 hover:border-[#25D366]/60 hover:bg-[#25D366]/5 transition-all duration-500"

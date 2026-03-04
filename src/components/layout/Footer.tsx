@@ -211,7 +211,7 @@ export default function Footer() {
                     href="tel:+919876543210"
                     className="block text-brand-gold/50 text-xs font-light tracking-wider hover:text-brand-gold transition-colors duration-300 mb-2"
                   >
-                    +91 98765 43210
+                    +91 99408 63196
                   </a>
                   <a
                     href="mailto:info@lakshmiglass.com"
