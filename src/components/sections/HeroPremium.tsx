@@ -2,6 +2,10 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const heroSlides = [
   {
@@ -58,15 +62,21 @@ export default function HeroPremium() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
+
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const sectionRef = useRef<HTMLElement>(null);
+  const bgWrapperRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<gsap.core.Timeline | null>(null);
+  const ctaRef1 = useRef<HTMLAnchorElement>(null);
+  const ctaRef2 = useRef<HTMLAnchorElement>(null);
 
+  // ── Initial load timer ─────────────────────────────────────────────────────
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 300);
     return () => clearTimeout(timer);
   }, []);
 
-  // Auto-advance slides
+  // ── Auto-advance slides ────────────────────────────────────────────────────
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
@@ -74,7 +84,7 @@ export default function HeroPremium() {
     return () => clearInterval(interval);
   }, []);
 
-  // Scroll parallax effect
+  // ── React scroll parallax (existing) ──────────────────────────────────────
   useEffect(() => {
     const handleScroll = () => {
       if (!sectionRef.current) return;
@@ -82,10 +92,122 @@ export default function HeroPremium() {
       const progress = Math.max(0, Math.min(1, -rect.top / rect.height));
       setScrollProgress(progress);
     };
-
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // ── GSAP entrance timeline (fires once isLoaded flips to true) ─────────────
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    // Kill any previous instance to be safe
+    if (timelineRef.current) {
+      timelineRef.current.kill();
+    }
+
+    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+    timelineRef.current = tl;
+
+    tl.from(".hero-subtitle", {
+      opacity: 0,
+      y: 24,
+      duration: 0.9,
+    })
+      .from(
+        ".hero-rule",
+        {
+          scaleX: 0,
+          transformOrigin: "left center",
+          duration: 1,
+          ease: "power2.inOut",
+        },
+        "-=0.5",
+      )
+      .from(
+        ".hero-cta-btn",
+        {
+          opacity: 0,
+          y: 30,
+          duration: 0.8,
+          stagger: 0.14,
+        },
+        "-=0.4",
+      );
+
+    return () => {
+      tl.kill();
+    };
+  }, [isLoaded]);
+
+  // ── GSAP ScrollTrigger parallax on background video wrapper ───────────────
+  useEffect(() => {
+    if (!bgWrapperRef.current || !sectionRef.current) return;
+
+    const st = gsap.to(bgWrapperRef.current, {
+      yPercent: 20,
+      ease: "none",
+      scrollTrigger: {
+        trigger: sectionRef.current,
+        start: "top top",
+        end: "bottom top",
+        scrub: 1,
+      },
+    });
+
+    return () => {
+      // st is actually the tween; kill its ScrollTrigger
+      if (st.scrollTrigger) {
+        st.scrollTrigger.kill();
+      }
+      st.kill();
+    };
+  }, []);
+
+  // ── Magnetic hover — CTA button 1 ─────────────────────────────────────────
+  const handleMagneticMove1 = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const el = ctaRef1.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    gsap.to(el, {
+      x: (e.clientX - rect.left - rect.width / 2) * 0.15,
+      y: (e.clientY - rect.top - rect.height / 2) * 0.15,
+      duration: 0.3,
+      ease: "power2.out",
+    });
+  };
+
+  const handleMagneticLeave1 = () => {
+    if (!ctaRef1.current) return;
+    gsap.to(ctaRef1.current, {
+      x: 0,
+      y: 0,
+      duration: 0.8,
+      ease: "elastic.out(1, 0.3)",
+    });
+  };
+
+  // ── Magnetic hover — CTA button 2 ─────────────────────────────────────────
+  const handleMagneticMove2 = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const el = ctaRef2.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    gsap.to(el, {
+      x: (e.clientX - rect.left - rect.width / 2) * 0.15,
+      y: (e.clientY - rect.top - rect.height / 2) * 0.15,
+      duration: 0.3,
+      ease: "power2.out",
+    });
+  };
+
+  const handleMagneticLeave2 = () => {
+    if (!ctaRef2.current) return;
+    gsap.to(ctaRef2.current, {
+      x: 0,
+      y: 0,
+      duration: 0.8,
+      ease: "elastic.out(1, 0.3)",
+    });
+  };
 
   const handleScrollDown = () => {
     const nextSection = document.getElementById("philosophy");
@@ -100,39 +222,45 @@ export default function HeroPremium() {
       className="relative h-screen w-full overflow-hidden bg-brand-black"
       id="hero"
     >
-      {/* Video/Image Backgrounds */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentSlide}
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="absolute inset-0"
-          style={{
-            transform: `translateY(${scrollProgress * 80}px) scale(${1 + scrollProgress * 0.1})`,
-          }}
-        >
-          <video
-            ref={(el) => {
-              videoRefs.current[currentSlide] = el;
+      {/* ── Video/Image Backgrounds ──────────────────────────────────────── */}
+      {/* bgWrapperRef wraps ALL slides so GSAP parallax applies globally */}
+      <div
+        ref={bgWrapperRef}
+        className="absolute inset-0 will-change-transform"
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentSlide}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="absolute inset-0"
+            style={{
+              transform: `translateY(${scrollProgress * 80}px) scale(${1 + scrollProgress * 0.1})`,
             }}
-            autoPlay
-            loop
-            muted
-            playsInline
-            poster={heroSlides[currentSlide].fallbackImage}
-            className="absolute inset-0 w-full h-full object-cover"
           >
-            <source src={heroSlides[currentSlide].video} type="video/webm" />
-          </video>
+            <video
+              ref={(el) => {
+                videoRefs.current[currentSlide] = el;
+              }}
+              autoPlay
+              loop
+              muted
+              playsInline
+              poster={heroSlides[currentSlide].fallbackImage}
+              className="absolute inset-0 w-full h-full object-cover"
+            >
+              <source src={heroSlides[currentSlide].video} type="video/webm" />
+            </video>
 
-          {/* Cinematic Overlays */}
-          <div className="absolute inset-0 bg-black/50" />
-          <div className="absolute inset-0 bg-gradient-to-b from-brand-black/40 via-transparent to-brand-black/80" />
-          <div className="absolute inset-0 bg-gradient-to-r from-brand-black/30 via-transparent to-brand-black/30" />
-        </motion.div>
-      </AnimatePresence>
+            {/* Cinematic Overlays */}
+            <div className="absolute inset-0 bg-black/50" />
+            <div className="absolute inset-0 bg-gradient-to-b from-brand-black/40 via-transparent to-brand-black/80" />
+            <div className="absolute inset-0 bg-gradient-to-r from-brand-black/30 via-transparent to-brand-black/30" />
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
       {/* Film Grain Overlay */}
       <div className="absolute inset-0 grain-overlay pointer-events-none z-[2]" />
@@ -155,12 +283,12 @@ export default function HeroPremium() {
         </span>
       </motion.div>
 
-      {/* Main Content */}
+      {/* ── Main Content ─────────────────────────────────────────────────── */}
       <div
         className="relative z-10 h-full flex flex-col items-center justify-center px-5 md:px-12"
         style={{ opacity: 1 - scrollProgress * 1.5 }}
       >
-        {/* Subtitle Badge */}
+        {/* Subtitle Badge — GSAP target: .hero-subtitle */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : 20 }}
@@ -169,7 +297,7 @@ export default function HeroPremium() {
             duration: 1,
             ease: [0.25, 0.46, 0.45, 0.94],
           }}
-          className="mb-6 md:mb-8"
+          className="mb-6 md:mb-8 hero-subtitle"
         >
           <AnimatePresence mode="wait">
             <motion.span
@@ -185,12 +313,12 @@ export default function HeroPremium() {
           </AnimatePresence>
         </motion.div>
 
-        {/* Decorative Line Above Title */}
+        {/* Decorative Gold Rule — GSAP target: .hero-rule */}
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: isLoaded ? "4rem" : 0 }}
           transition={{ delay: 0.8, duration: 1.2 }}
-          className="h-[1px] bg-brand-gold/50 mb-8 md:mb-10"
+          className="h-[1px] bg-brand-gold/50 mb-8 md:mb-10 hero-rule"
         />
 
         {/* Main Title */}
@@ -227,7 +355,7 @@ export default function HeroPremium() {
           className="mt-6 md:mt-8 mb-4"
         >
           <span className="text-brand-gold/60 text-[10px] md:text-xs font-light tracking-[0.5em] uppercase">
-            Lakshmi Glass & Interiors
+            Lakshmi Glass &amp; Interiors
           </span>
         </motion.div>
 
@@ -252,7 +380,7 @@ export default function HeroPremium() {
           </AnimatePresence>
         </motion.div>
 
-        {/* CTA Buttons */}
+        {/* ── CTA Buttons — GSAP targets: .hero-cta-btn + magnetic hover ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : 30 }}
@@ -260,8 +388,11 @@ export default function HeroPremium() {
           className="flex flex-col sm:flex-row gap-4 sm:gap-6"
         >
           <Link
+            ref={ctaRef1}
             href="/projects"
-            className="group relative px-10 md:px-14 py-4 border border-brand-gold/40 text-brand-gold font-light uppercase tracking-[0.25em] text-xs hover:bg-brand-gold hover:text-black transition-all duration-700 text-center overflow-hidden"
+            onMouseMove={handleMagneticMove1}
+            onMouseLeave={handleMagneticLeave1}
+            className="hero-cta-btn group relative px-10 md:px-14 py-4 border border-brand-gold/40 text-brand-gold font-light uppercase tracking-[0.25em] text-xs hover:bg-brand-gold hover:text-black transition-all duration-700 text-center overflow-hidden"
           >
             <span className="relative z-10">View Collections</span>
             <div className="absolute inset-0 bg-brand-gold transform -translate-x-full group-hover:translate-x-0 transition-transform duration-700 ease-cinematic" />
@@ -269,16 +400,20 @@ export default function HeroPremium() {
               View Collections
             </span>
           </Link>
+
           <Link
+            ref={ctaRef2}
             href="#contact"
-            className="px-10 md:px-14 py-4 bg-brand-gold/90 text-black font-light uppercase tracking-[0.25em] text-xs hover:bg-white transition-all duration-500 text-center"
+            onMouseMove={handleMagneticMove2}
+            onMouseLeave={handleMagneticLeave2}
+            className="hero-cta-btn px-10 md:px-14 py-4 bg-brand-gold/90 text-black font-light uppercase tracking-[0.25em] text-xs hover:bg-white transition-all duration-500 text-center"
           >
             Book Consultation
           </Link>
         </motion.div>
       </div>
 
-      {/* Slide Indicators */}
+      {/* ── Slide Indicators ─────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: isLoaded ? 1 : 0 }}

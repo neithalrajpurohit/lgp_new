@@ -1,6 +1,8 @@
 "use client";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const galleryImages = [
   "/images/00DD2A56-22A9-40C8-BB8D-B60FBF64A53B_1_102_o.jpeg",
@@ -51,42 +53,31 @@ const galleryImages = [
 ];
 
 const galleryVideos = [
-  {
-    src: "/videos/real.webm",
-    poster: "/images/BA6144DC-C240-45E5-A6AA-CAF38619C90F_1_102_o.jpeg",
-    title: "Studio Showcase — Behind the Craft",
-  },
-  {
-    src: "/videos/video1.webm",
-    poster: "/videos/00DD2A56-22A9-40C8-BB8D-B60FBF64A53B_1_102_o.jpeg",
-    title: "Luxury Living Room",
-  },
+  { src: "/videos/new1.mp4", title: "Glass Craftsmanship 1", views: "2.4k" },
+  { src: "/videos/new2.mp4", title: "Glass Craftsmanship 2", views: "1.8k" },
+  { src: "/videos/new3.mp4", title: "Glass Craftsmanship 3", views: "3.1k" },
+  { src: "/videos/new4.mp4", title: "Glass Craftsmanship 4", views: "987" },
+  { src: "/videos/new5.mp4", title: "Glass Craftsmanship 5", views: "2.2k" },
+  { src: "/videos/new6.mp4", title: "Glass Craftsmanship 6", views: "1.5k" },
+  { src: "/videos/new7.mp4", title: "Glass Craftsmanship 7", views: "4.0k" },
+  { src: "/videos/new8.mp4", title: "Glass Craftsmanship 8", views: "763" },
+  { src: "/videos/real.webm", title: "Studio Showcase", views: "6.7k" },
+  { src: "/videos/video1.webm", title: "Luxury Living Room", views: "5.2k" },
   {
     src: "/videos/videos2.webm",
-    poster: "/videos/1513AF11-753E-4A0B-84F1-A83E42A41A26_1_102_o.jpeg",
     title: "Modern Kitchen Design",
+    views: "3.9k",
   },
-  {
-    src: "/videos/video3.webm",
-    poster: "/videos/4E1B137A-C6D7-40BD-90D0-C960FA898F7B_1_102_o.jpeg",
-    title: "Office Interior",
-  },
-  {
-    src: "/videos/video4.webm",
-    poster: "/videos/AA72C2D0-779D-4EF5-98DB-ED0458F3A1F5_1_102_o.jpeg",
-    title: "Premium Bedroom Suite",
-  },
-  {
-    src: "/videos/video5.webm",
-    poster: "/videos/BA6144DC-C240-45E5-A6AA-CAF38619C90F_1_102_o.jpeg",
-    title: "Hospitality Design",
-  },
+  { src: "/videos/video3.webm", title: "Office Interior", views: "2.1k" },
+  { src: "/videos/video4.webm", title: "Premium Bedroom Suite", views: "4.4k" },
+  { src: "/videos/video5.webm", title: "Hospitality Design", views: "1.3k" },
 ];
 
 type FilterType = "all" | "images" | "videos";
-
+const FILTERS: FilterType[] = ["all", "images", "videos"];
 const IMAGES_PER_PAGE = 12;
 
+// ─── GalleryImage ─────────────────────────────────────────────────────────────
 function GalleryImage({
   src,
   index,
@@ -99,67 +90,92 @@ function GalleryImage({
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-40px" });
 
-  // Vary aspect ratios for masonry feel
-  const aspectClasses = [
-    "aspect-[4/3]",
-    "aspect-[3/4]",
-    "aspect-square",
-    "aspect-[4/5]",
-    "aspect-[5/4]",
-    "aspect-[3/2]",
-    "aspect-[2/3]",
-    "aspect-[16/10]",
-  ];
-  const aspectClass = aspectClasses[index % aspectClasses.length];
-
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 24 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
       transition={{
-        duration: 0.8,
-        delay: (index % 6) * 0.08,
+        duration: 0.9,
+        delay: (index % 8) * 0.06,
         ease: [0.25, 0.46, 0.45, 0.94],
       }}
-      className="group cursor-pointer relative overflow-hidden"
+      className="gallery-item group cursor-pointer relative overflow-hidden"
       onClick={onClick}
     >
-      <div className={`${aspectClass} overflow-hidden bg-brand-dark`}>
+      {/* Image */}
+      <div className="overflow-hidden bg-[#0d0d0d] relative">
         <img
           src={src}
           alt={`Interior design project ${index + 1}`}
           loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-110"
+          className="w-full h-full object-cover transition-transform duration-[1.4s] ease-out group-hover:scale-[1.06]"
         />
+
         {/* Hover overlay */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-700 flex items-center justify-center">
-          <div className="opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-3 group-hover:translate-y-0">
-            <div className="w-12 h-12 rounded-full border border-white/40 flex items-center justify-center backdrop-blur-sm bg-white/5">
-              <svg
-                className="w-5 h-5 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                />
-              </svg>
-            </div>
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-700" />
+
+        {/* Gold corner brackets — top-left */}
+        <span
+          className="absolute top-3 left-3 w-5 h-5 pointer-events-none
+                     border-t border-l border-transparent
+                     group-hover:border-[#C9A961]/70
+                     transition-all duration-500 ease-out"
+        />
+        {/* Gold corner brackets — top-right */}
+        <span
+          className="absolute top-3 right-3 w-5 h-5 pointer-events-none
+                     border-t border-r border-transparent
+                     group-hover:border-[#C9A961]/70
+                     transition-all duration-500 ease-out"
+        />
+        {/* Gold corner brackets — bottom-left */}
+        <span
+          className="absolute bottom-3 left-3 w-5 h-5 pointer-events-none
+                     border-b border-l border-transparent
+                     group-hover:border-[#C9A961]/70
+                     transition-all duration-500 ease-out"
+        />
+        {/* Gold corner brackets — bottom-right */}
+        <span
+          className="absolute bottom-3 right-3 w-5 h-5 pointer-events-none
+                     border-b border-r border-transparent
+                     group-hover:border-[#C9A961]/70
+                     transition-all duration-500 ease-out"
+        />
+
+        {/* Centre + icon */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div
+            className="opacity-0 group-hover:opacity-100 transition-all duration-500
+                          translate-y-2 group-hover:translate-y-0"
+          >
+            <span className="text-white/80 text-3xl font-extralight leading-none select-none">
+              +
+            </span>
           </div>
         </div>
-        {/* Gold corner accents on hover */}
-        <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-brand-gold/0 group-hover:border-brand-gold/50 transition-all duration-500" />
-        <div className="absolute bottom-3 right-3 w-5 h-5 border-b border-r border-brand-gold/0 group-hover:border-brand-gold/50 transition-all duration-500" />
+
+        {/* Bottom caption bar */}
+        <div
+          className="absolute bottom-0 left-0 right-0 flex items-center justify-between
+                        px-3.5 pb-3 pt-8
+                        bg-gradient-to-t from-black/60 to-transparent
+                        opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none"
+        >
+          <span className="text-white/30 text-[9px] tracking-[0.35em] uppercase font-light">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <span className="text-[#C9A961]/60 text-[9px] tracking-[0.35em] uppercase font-light">
+            View
+          </span>
+        </div>
       </div>
     </motion.div>
   );
 }
 
+// ─── GalleryVideo ─────────────────────────────────────────────────────────────
 function GalleryVideo({
   video,
   index,
@@ -175,102 +191,221 @@ function GalleryVideo({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    const handleLoaded = () => {
+      el.currentTime = 0.5;
+    };
+    el.addEventListener("loadedmetadata", handleLoaded);
+    return () => el.removeEventListener("loadedmetadata", handleLoaded);
+  }, []);
+
+  useEffect(() => {
     if (videoRef.current) {
       if (isHovered) {
         videoRef.current.play().catch(() => {});
       } else {
         videoRef.current.pause();
-        videoRef.current.currentTime = 0;
+        videoRef.current.currentTime = 0.5;
       }
+    }
+  }, [isHovered]);
+
+  // GSAP clip-path reveal on hover
+  useEffect(() => {
+    if (!videoRef.current) return;
+    if (isHovered) {
+      gsap.to(videoRef.current, {
+        clipPath: "inset(0% 0% 0% 0%)",
+        duration: 0.6,
+        ease: "power2.inOut",
+      });
+    } else {
+      gsap.to(videoRef.current, {
+        clipPath: "inset(4% 4% 4% 4%)",
+        duration: 0.5,
+        ease: "power2.inOut",
+      });
     }
   }, [isHovered]);
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 28 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 }}
       transition={{
-        duration: 0.8,
-        delay: index * 0.1,
+        duration: 0.9,
+        delay: (index % 6) * 0.09,
         ease: [0.25, 0.46, 0.45, 0.94],
       }}
-      className="group cursor-pointer relative overflow-hidden"
+      className="gallery-item group cursor-pointer relative"
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="aspect-video overflow-hidden bg-brand-dark relative">
-        {/* Poster image */}
-        <img
-          src={video.poster}
-          alt={video.title}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
-            isHovered ? "opacity-0" : "opacity-100"
-          }`}
+      {/* Animated top gold border */}
+      <div className="relative overflow-hidden">
+        <div
+          className="absolute top-0 left-0 right-0 h-[1px] bg-[#C9A961]/0
+                       group-hover:bg-[#C9A961]/60
+                       transition-all duration-500 z-10"
         />
-        {/* Preview video */}
-        <video
-          ref={videoRef}
-          muted
-          loop
-          playsInline
-          preload="none"
-          poster={video.poster}
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${
-            isHovered ? "opacity-100 scale-105" : "opacity-0 scale-100"
-          }`}
-        >
-          <source src={video.src} type="video/webm" />
-        </video>
 
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-all duration-700" />
-
-        {/* Play button */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div
-            className={`w-16 h-16 md:w-20 md:h-20 rounded-full border-2 flex items-center justify-center transition-all duration-500 ${
-              isHovered
-                ? "border-brand-gold bg-brand-gold/20 scale-110"
-                : "border-white/40 bg-white/5"
+        <div className="bg-[#0d0d0d] aspect-video overflow-hidden relative">
+          {/* Preview video */}
+          <video
+            ref={videoRef}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            style={{ clipPath: "inset(4% 4% 4% 4%)" }}
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${
+              isHovered ? "scale-[1.05]" : "scale-100"
             }`}
-            style={{ backdropFilter: "blur(8px)" }}
           >
-            <svg
-              className={`w-6 h-6 md:w-8 md:h-8 ml-1 transition-colors duration-500 ${
-                isHovered ? "text-brand-gold" : "text-white"
-              }`}
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </div>
-        </div>
+            <source
+              src={video.src}
+              type={video.src.endsWith(".webm") ? "video/webm" : "video/mp4"}
+            />
+          </video>
 
-        {/* Video title */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-t from-black/70 to-transparent">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-            <span className="text-white/60 text-[10px] tracking-[0.2em] uppercase font-light">
-              Video
+          {/* Dark scrim */}
+          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/25 transition-all duration-700" />
+
+          {/* HD badge — top right */}
+          <div className="absolute top-3 right-3 z-10">
+            <span
+              className="text-[9px] tracking-[0.25em] uppercase font-light
+                           text-[#C9A961]/70 border border-[#C9A961]/25
+                           px-1.5 py-0.5 leading-none"
+            >
+              HD
             </span>
           </div>
-          <h4 className="font-serif text-base md:text-lg text-white font-light">
-            {video.title}
-          </h4>
-        </div>
 
-        {/* Gold corner accents */}
-        <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-brand-gold/0 group-hover:border-brand-gold/50 transition-all duration-500" />
-        <div className="absolute top-3 right-3 w-5 h-5 border-t border-r border-brand-gold/0 group-hover:border-brand-gold/50 transition-all duration-500" />
+          {/* Index — top left */}
+          <div className="absolute top-3 left-3 z-10">
+            <span className="text-white/20 text-[9px] tracking-[0.3em] font-light">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+          </div>
+
+          {/* Play button — minimal circle */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div
+              className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-500 ${
+                isHovered
+                  ? "border border-[#C9A961] scale-105"
+                  : "border border-white/30 scale-100"
+              }`}
+            >
+              <svg
+                className={`w-4 h-4 ml-0.5 transition-colors duration-500 ${
+                  isHovered ? "text-[#C9A961]" : "text-white/60"
+                }`}
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Bottom title bar */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+            <h4 className="font-serif text-lg font-light text-white leading-snug">
+              {video.title}
+            </h4>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-white/25 text-[9px] tracking-[0.3em] uppercase font-light">
+                {video.views} views
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </motion.div>
   );
 }
 
-// Lightbox component
+// ─── Load More — editorial rule + text style ──────────────────────────────────
+function LoadMoreButton({
+  remaining,
+  progress,
+  onClick,
+}: {
+  remaining: number;
+  progress: number;
+  onClick: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      className="mt-16 md:mt-20"
+    >
+      {/* Full-width gold rule with centred button */}
+      <div className="relative flex items-center gap-0">
+        {/* Left rule */}
+        <div
+          className={`flex-1 h-[1px] transition-colors duration-500 ${
+            hovered ? "bg-[#C9A961]/30" : "bg-white/[0.06]"
+          }`}
+        />
+
+        {/* Centre text button */}
+        <button
+          onClick={onClick}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          className="relative px-10 flex items-center gap-4 group focus:outline-none"
+          aria-label="Load more images"
+        >
+          <span
+            className={`text-[11px] tracking-[0.35em] uppercase font-light transition-colors duration-400 ${
+              hovered ? "text-[#C9A961]" : "text-white/40"
+            }`}
+          >
+            — Load More —
+          </span>
+        </button>
+
+        {/* Right rule */}
+        <div
+          className={`flex-1 h-[1px] transition-colors duration-500 ${
+            hovered ? "bg-[#C9A961]/30" : "bg-white/[0.06]"
+          }`}
+        />
+      </div>
+
+      {/* Progress sub-line */}
+      <div className="flex items-center justify-center gap-6 mt-5">
+        <div className="w-32 h-[1px] bg-white/[0.04] relative overflow-hidden">
+          <div
+            className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#C9A961]/30 via-[#C9A961]/50 to-[#C9A961]/30 transition-all duration-700"
+            style={{ width: `${progress * 100}%` }}
+          />
+        </div>
+        <span className="text-white/20 text-[9px] tracking-[0.35em] uppercase font-light">
+          {Math.round(progress * 100)}% shown · {remaining} remaining
+        </span>
+        <div className="w-32 h-[1px] bg-white/[0.04] relative overflow-hidden">
+          <div
+            className="absolute inset-y-0 right-0 bg-gradient-to-l from-[#C9A961]/30 via-[#C9A961]/50 to-[#C9A961]/30 transition-all duration-700"
+            style={{ width: `${progress * 100}%` }}
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Lightbox ─────────────────────────────────────────────────────────────────
 function Lightbox({
   isOpen,
   onClose,
@@ -304,11 +439,7 @@ function Lightbox({
   }, [isOpen, onClose, onNext, onPrev]);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = isOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
@@ -322,26 +453,35 @@ function Lightbox({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
-          className="fixed inset-0 z-[200] bg-black/97 flex items-center justify-center"
+          className="fixed inset-0 z-[200] flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.98)" }}
           onClick={onClose}
         >
-          {/* Close Button */}
+          {/* Close — thin X top right */}
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 md:top-8 md:right-8 z-10 w-12 h-12 flex items-center justify-center group"
+            className="absolute top-6 right-7 md:top-8 md:right-10 z-20
+                       text-white/40 hover:text-[#C9A961] transition-colors duration-300
+                       focus:outline-none group"
             aria-label="Close lightbox"
           >
-            <div className="relative w-6 h-6">
-              <span className="absolute top-1/2 left-0 w-full h-[1px] bg-white/60 group-hover:bg-brand-gold transition-colors duration-300 rotate-45" />
-              <span className="absolute top-1/2 left-0 w-full h-[1px] bg-white/60 group-hover:bg-brand-gold transition-colors duration-300 -rotate-45" />
-            </div>
+            <svg
+              className="w-6 h-6"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1"
+            >
+              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+            </svg>
           </button>
 
           {/* Counter */}
           {type === "image" && images && currentIndex !== undefined && (
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10">
-              <span className="text-white/40 text-xs tracking-[0.3em] font-light">
-                {String(currentIndex + 1).padStart(2, "0")} /{" "}
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20">
+              <span className="text-white/25 text-[10px] tracking-[0.4em] font-light">
+                {String(currentIndex + 1).padStart(2, "0")}
+                <span className="text-white/15 mx-2">/</span>
                 {String(images.length).padStart(2, "0")}
               </span>
             </div>
@@ -349,16 +489,16 @@ function Lightbox({
 
           {/* Content */}
           <div
-            className="relative w-full h-full flex items-center justify-center p-4 md:p-12"
+            className="relative w-full h-full flex items-center justify-center p-6 md:p-14"
             onClick={(e) => e.stopPropagation()}
           >
             {type === "image" && imageSrc && (
               <motion.div
                 key={imageSrc}
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.4 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="max-w-6xl max-h-[85vh] w-full h-full flex items-center justify-center"
               >
                 <img
@@ -371,19 +511,24 @@ function Lightbox({
 
             {type === "video" && videoSrc && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4 }}
+                transition={{ duration: 0.45 }}
                 className="max-w-5xl w-full"
               >
-                <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                <div className="aspect-video bg-black overflow-hidden">
                   <video
                     autoPlay
                     controls
                     playsInline
                     className="w-full h-full object-contain"
                   >
-                    <source src={videoSrc} type="video/webm" />
+                    <source
+                      src={videoSrc}
+                      type={
+                        videoSrc.endsWith(".webm") ? "video/webm" : "video/mp4"
+                      }
+                    />
                     Your browser does not support the video tag.
                   </video>
                 </div>
@@ -391,7 +536,7 @@ function Lightbox({
             )}
           </div>
 
-          {/* Navigation Arrows for images */}
+          {/* Navigation arrows — minimal serif chevrons */}
           {type === "image" && images && images.length > 1 && (
             <>
               <button
@@ -399,44 +544,30 @@ function Lightbox({
                   e.stopPropagation();
                   onPrev?.();
                 }}
-                className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center border border-white/10 hover:border-brand-gold/40 transition-all duration-300 group bg-black/20 backdrop-blur-sm"
+                className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20
+                           text-white/25 hover:text-[#C9A961]
+                           transition-colors duration-300 focus:outline-none
+                           select-none leading-none"
                 aria-label="Previous image"
               >
-                <svg
-                  className="w-5 h-5 text-white/60 group-hover:text-brand-gold transition-colors"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
+                <span className="font-serif text-[3.5rem] md:text-[5rem] font-thin leading-none">
+                  &#8249;
+                </span>
               </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onNext?.();
                 }}
-                className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center border border-white/10 hover:border-brand-gold/40 transition-all duration-300 group bg-black/20 backdrop-blur-sm"
+                className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20
+                           text-white/25 hover:text-[#C9A961]
+                           transition-colors duration-300 focus:outline-none
+                           select-none leading-none"
                 aria-label="Next image"
               >
-                <svg
-                  className="w-5 h-5 text-white/60 group-hover:text-brand-gold transition-colors"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+                <span className="font-serif text-[3.5rem] md:text-[5rem] font-thin leading-none">
+                  &#8250;
+                </span>
               </button>
             </>
           )}
@@ -446,9 +577,13 @@ function Lightbox({
   );
 }
 
+// ─── Main Gallery Section ─────────────────────────────────────────────────────
 export default function Gallery() {
   const headerRef = useRef<HTMLDivElement>(null);
   const headerInView = useInView(headerRef, { once: true, margin: "-80px" });
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const marqueeRef = useRef<HTMLDivElement>(null);
 
   const [filter, setFilter] = useState<FilterType>("all");
   const [visibleCount, setVisibleCount] = useState(IMAGES_PER_PAGE);
@@ -457,8 +592,90 @@ export default function Gallery() {
   const [lightboxImageIndex, setLightboxImageIndex] = useState(0);
   const [lightboxVideoSrc, setLightboxVideoSrc] = useState("");
 
+  // Pill underline indicator position
+  const [pillStyle, setPillStyle] = useState<{ left: number; width: number }>({
+    left: 0,
+    width: 0,
+  });
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // Register GSAP ScrollTrigger
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+  }, []);
+
+  // GSAP ScrollTrigger marquee reveal on eyebrow label
+  useEffect(() => {
+    if (!marqueeRef.current) return;
+    gsap.fromTo(
+      marqueeRef.current,
+      { x: -30, opacity: 0 },
+      {
+        x: 0,
+        opacity: 1,
+        ease: "none",
+        scrollTrigger: {
+          trigger: marqueeRef.current,
+          start: "top 85%",
+          end: "top 55%",
+          scrub: 0.5,
+        },
+      },
+    );
+    return () => {
+      ScrollTrigger.getAll().forEach((st) => st.kill());
+    };
+  }, []);
+
+  useEffect(() => {
+    const activeIdx = FILTERS.indexOf(filter);
+    const btn = tabRefs.current[activeIdx];
+    const container = tabsRef.current;
+    if (btn && container) {
+      const containerRect = container.getBoundingClientRect();
+      const btnRect = btn.getBoundingClientRect();
+      setPillStyle({
+        left: btnRect.left - containerRect.left,
+        width: btnRect.width,
+      });
+    }
+  }, [filter]);
+
+  // Init pill on mount
+  useEffect(() => {
+    const btn = tabRefs.current[0];
+    const container = tabsRef.current;
+    if (btn && container) {
+      const containerRect = container.getBoundingClientRect();
+      const btnRect = btn.getBoundingClientRect();
+      setPillStyle({
+        left: btnRect.left - containerRect.left,
+        width: btnRect.width,
+      });
+    }
+  }, []);
+
   const displayedImages = galleryImages.slice(0, visibleCount);
   const hasMoreImages = visibleCount < galleryImages.length;
+
+  // GSAP stagger reveal on grid items when filter or displayed images change
+  useEffect(() => {
+    if (!gridRef.current) return;
+    const items = gridRef.current.querySelectorAll(".gallery-item");
+    gsap.fromTo(
+      items,
+      { opacity: 0, y: 40, scale: 0.97 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.7,
+        stagger: 0.08,
+        ease: "power3.out",
+        clearProps: "all",
+      },
+    );
+  }, [displayedImages, filter]);
 
   const handleImageClick = useCallback((index: number) => {
     setLightboxType("image");
@@ -484,235 +701,274 @@ export default function Gallery() {
     );
   }, []);
 
-  const loadMore = () => {
+  const loadMore = useCallback(() => {
     setVisibleCount((prev) =>
       Math.min(prev + IMAGES_PER_PAGE, galleryImages.length),
     );
-  };
+  }, []);
+
+  const loadedProgress = visibleCount / galleryImages.length;
 
   return (
-    <section
-      id="gallery"
-      className="relative py-24 md:py-32 lg:py-40 bg-brand-black overflow-hidden"
-    >
-      {/* Background decorative elements */}
-      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" />
-      <div className="absolute inset-0 grain-overlay pointer-events-none opacity-30" />
+    <section id="gallery" className="relative bg-[#080808] overflow-hidden">
+      {/* Grain overlay */}
+      <div className="absolute inset-0 grain-overlay pointer-events-none opacity-20" />
 
-      {/* Section Header */}
+      {/* ── Editorial Section Header ─────────────────────────────── */}
       <div
         ref={headerRef}
-        className="max-w-8xl mx-auto px-5 md:px-8 lg:px-12 mb-16 md:mb-20"
+        className="relative pt-24 md:pt-32 lg:pt-40 pb-16 md:pb-20"
       >
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={headerInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8 }}
-              className="flex items-center gap-4 mb-5"
-            >
-              <div className="w-10 h-[1px] bg-brand-gold/40" />
-              <span className="text-brand-gold/60 text-[10px] md:text-xs font-light tracking-[0.5em] uppercase">
-                Portfolio
-              </span>
-            </motion.div>
+        {/* Giant decorative section number */}
+        <span
+          aria-hidden="true"
+          className="absolute top-0 left-8 font-serif text-[8rem] md:text-[10rem] lg:text-[13rem]
+                     text-white leading-none select-none pointer-events-none"
+          style={{ color: "rgba(255,255,255,0.03)" }}
+        >
+          03
+        </span>
 
-            <motion.h2
-              initial={{ opacity: 0, y: 40 }}
-              animate={headerInView ? { opacity: 1, y: 0 } : {}}
-              transition={{
-                duration: 1.2,
-                delay: 0.2,
-                ease: [0.25, 0.46, 0.45, 0.94],
-              }}
-              className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-white leading-[1.05] tracking-tight"
+        <div className="max-w-8xl mx-auto px-5 md:px-8 lg:px-12 text-center">
+          {/* Eyebrow */}
+          <div ref={marqueeRef}>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={headerInView ? { opacity: 1 } : {}}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              className="text-[10px] tracking-[0.5em] uppercase mb-6 md:mb-8"
+              style={{ color: "rgba(201,169,97,0.50)" }}
             >
-              Our
-              <br />
-              <span className="text-brand-gold/80">Gallery</span>
-            </motion.h2>
+              Our Work
+            </motion.p>
           </div>
 
-          {/* Filter Buttons */}
-          <motion.div
+          {/* Centered heading */}
+          <motion.h2
+            initial={{ opacity: 0, y: 40 }}
+            animate={headerInView ? { opacity: 1, y: 0 } : {}}
+            transition={{
+              duration: 1.1,
+              delay: 0.2,
+              ease: [0.25, 0.46, 0.45, 0.94],
+            }}
+            className="font-serif font-light text-white tracking-tight leading-[0.9]
+                       text-[4rem] md:text-[6rem] lg:text-[8rem] mb-8 md:mb-10"
+          >
+            CURATED
+            <br />
+            <span className="text-white/80">GALLERY</span>
+          </motion.h2>
+
+          {/* Description */}
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={headerInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="flex items-center gap-1 md:gap-2"
+            transition={{ duration: 0.9, delay: 0.35 }}
+            className="text-white/30 text-sm font-light leading-relaxed tracking-wide max-w-xl mx-auto mb-10 md:mb-12"
           >
-            {(["all", "images", "videos"] as FilterType[]).map((f) => (
-              <button
-                key={f}
-                onClick={() => {
-                  setFilter(f);
-                  setVisibleCount(IMAGES_PER_PAGE);
-                }}
-                className={`px-5 md:px-7 py-2.5 text-[10px] md:text-xs font-light uppercase tracking-[0.25em] transition-all duration-500 ${
-                  filter === f
-                    ? "bg-brand-gold/10 text-brand-gold border border-brand-gold/30"
-                    : "text-white/30 border border-white/5 hover:text-white/60 hover:border-white/10"
-                }`}
-              >
-                {f}
-              </button>
-            ))}
-          </motion.div>
-        </div>
+            A curated selection of our finest glass and interior installations —
+            each project a testament to precision craftsmanship and elevated
+            living.
+          </motion.p>
 
-        {/* Divider */}
-        <motion.div
-          initial={{ scaleX: 0 }}
-          animate={headerInView ? { scaleX: 1 } : {}}
-          transition={{
-            duration: 1.5,
-            delay: 0.5,
-            ease: [0.25, 0.46, 0.45, 0.94],
-          }}
-          className="h-[1px] bg-gradient-to-r from-brand-gold/20 via-white/[0.06] to-transparent mt-10 md:mt-14 origin-left"
-        />
+          {/* Minimal text filter tabs — centered */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={headerInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="flex justify-center"
+          >
+            <div ref={tabsRef} className="relative flex items-center gap-7">
+              {/* Sliding underline indicator */}
+              <motion.div
+                className="absolute bottom-0 h-[1px] pointer-events-none"
+                style={{ backgroundColor: "#C9A961" }}
+                animate={{ left: pillStyle.left, width: pillStyle.width }}
+                transition={{ type: "spring", stiffness: 400, damping: 35 }}
+              />
+
+              {FILTERS.map((f, i) => {
+                const countMap: Record<FilterType, number> = {
+                  all: galleryImages.length + galleryVideos.length,
+                  images: galleryImages.length,
+                  videos: galleryVideos.length,
+                };
+                return (
+                  <button
+                    key={f}
+                    ref={(el) => {
+                      tabRefs.current[i] = el;
+                    }}
+                    onClick={() => {
+                      setFilter(f);
+                      setVisibleCount(IMAGES_PER_PAGE);
+                    }}
+                    className={`relative pb-2 flex items-baseline gap-1 text-[11px] tracking-[0.3em] uppercase font-light
+                                transition-colors duration-300 focus:outline-none ${
+                                  filter === f
+                                    ? "text-white"
+                                    : "text-white/30 hover:text-white/60"
+                                }`}
+                  >
+                    {f}
+                    <span
+                      className="text-[9px] ml-0.5 leading-none"
+                      style={{ color: "rgba(201,169,97,0.40)" }}
+                    >
+                      {countMap[f]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+
+          {/* Divider rule */}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={headerInView ? { scaleX: 1 } : {}}
+            transition={{
+              duration: 1.6,
+              delay: 0.55,
+              ease: [0.25, 0.46, 0.45, 0.94],
+            }}
+            className="h-[1px] mt-14 md:mt-16 origin-left"
+            style={{
+              background:
+                "linear-gradient(to right, rgba(201,169,97,0.25), rgba(255,255,255,0.04), transparent)",
+            }}
+          />
+        </div>
       </div>
 
-      {/* Videos Section */}
-      {(filter === "all" || filter === "videos") && (
-        <div className="max-w-8xl mx-auto px-5 md:px-8 lg:px-12 mb-16 md:mb-24">
-          {/* Videos label */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="flex items-center gap-4 mb-8 md:mb-10"
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-red-500/80 rounded-full" />
-              <span className="text-white/30 text-[10px] md:text-xs font-light tracking-[0.3em] uppercase">
-                Video Walkthroughs
-              </span>
-            </div>
-            <div className="flex-1 h-[1px] bg-white/[0.04]" />
-            <span className="text-white/20 text-[10px] font-light tracking-wider">
-              {galleryVideos.length} Videos
-            </span>
-          </motion.div>
-
-          {/* Videos Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-            {galleryVideos.map((video, index) => (
-              <GalleryVideo
-                key={video.src}
-                video={video}
-                index={index}
-                onClick={() => handleVideoClick(video.src)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Images Section */}
-      {(filter === "all" || filter === "images") && (
-        <div className="max-w-8xl mx-auto px-5 md:px-8 lg:px-12">
-          {/* Images label */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="flex items-center gap-4 mb-8 md:mb-10"
-          >
-            <div className="flex items-center gap-2">
-              <svg
-                className="w-3 h-3 text-brand-gold/60"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <span className="text-white/30 text-[10px] md:text-xs font-light tracking-[0.3em] uppercase">
-                Project Photography
-              </span>
-            </div>
-            <div className="flex-1 h-[1px] bg-white/[0.04]" />
-            <span className="text-white/20 text-[10px] font-light tracking-wider">
-              {galleryImages.length} Images
-            </span>
-          </motion.div>
-
-          {/* Masonry-style grid */}
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-3 md:gap-4">
-            {displayedImages.map((src, index) => (
-              <div key={src} className="mb-3 md:mb-4 break-inside-avoid">
-                <GalleryImage
-                  src={src}
-                  index={index}
-                  onClick={() => handleImageClick(index)}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Load More */}
-          {hasMoreImages && (
+      {/* ── Videos + Images grid wrapper — GSAP stagger target ── */}
+      <div ref={gridRef}>
+        {/* ── Videos Section ──────────────────────────────────── */}
+        <AnimatePresence mode="wait">
+          {(filter === "all" || filter === "videos") && (
             <motion.div
+              key="videos"
               initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="text-center mt-14 md:mt-20"
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="max-w-8xl mx-auto px-5 md:px-8 lg:px-12 mb-16 md:mb-24"
             >
-              <button
-                onClick={loadMore}
-                className="group relative inline-flex items-center gap-4 px-10 py-4 border border-white/10 hover:border-brand-gold/30 transition-all duration-700"
+              {/* Sub-label row */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+                className="flex items-center gap-5 mb-8 md:mb-10"
               >
-                <span className="text-white/40 text-xs font-light uppercase tracking-[0.25em] group-hover:text-brand-gold transition-colors duration-500">
-                  Load More
+                <span className="text-white/20 text-[10px] tracking-[0.45em] uppercase font-light">
+                  Video Walkthroughs
                 </span>
-                <div className="flex items-center gap-1">
-                  <span className="text-white/20 text-[10px] font-light">
-                    {galleryImages.length - visibleCount} remaining
-                  </span>
-                </div>
-                {/* Progress indicator */}
-                <div className="absolute bottom-0 left-0 h-[1px] bg-brand-gold/20">
-                  <div
-                    className="h-full bg-brand-gold/50 transition-all duration-500"
-                    style={{
-                      width: `${(visibleCount / galleryImages.length) * 100}%`,
-                    }}
-                  />
-                </div>
-              </button>
-            </motion.div>
-          )}
+                <div className="flex-1 h-[1px] bg-white/[0.04]" />
+                <span className="text-white/15 text-[9px] tracking-[0.3em] font-light uppercase">
+                  {galleryVideos.length} Films
+                </span>
+              </motion.div>
 
-          {/* Show all loaded message */}
-          {!hasMoreImages && visibleCount > IMAGES_PER_PAGE && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center mt-14"
-            >
-              <div className="inline-flex items-center gap-3">
-                <div className="w-8 h-[1px] bg-brand-gold/20" />
-                <span className="text-brand-gold/40 text-[10px] tracking-[0.3em] uppercase font-light">
-                  All {galleryImages.length} images loaded
-                </span>
-                <div className="w-8 h-[1px] bg-brand-gold/20" />
+              {/* 3-col video grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+                {galleryVideos.map((video, index) => (
+                  <GalleryVideo
+                    key={video.src}
+                    video={video}
+                    index={index}
+                    onClick={() => handleVideoClick(video.src)}
+                  />
+                ))}
               </div>
             </motion.div>
           )}
-        </div>
-      )}
+        </AnimatePresence>
 
-      {/* Bottom decorative element */}
-      <div className="max-w-4xl mx-auto mt-20 md:mt-28 px-5">
-        <div className="h-[1px] bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" />
+        {/* ── Images Section ──────────────────────────────────── */}
+        <AnimatePresence mode="wait">
+          {(filter === "all" || filter === "images") && (
+            <motion.div
+              key="images"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="max-w-8xl mx-auto px-5 md:px-8 lg:px-12"
+            >
+              {/* Sub-label row */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+                className="flex items-center gap-5 mb-8 md:mb-10"
+              >
+                <span className="text-white/20 text-[10px] tracking-[0.45em] uppercase font-light">
+                  Project Photography
+                </span>
+                <div className="flex-1 h-[1px] bg-white/[0.04]" />
+                <span className="text-white/15 text-[9px] tracking-[0.3em] font-light uppercase">
+                  {galleryImages.length} Images
+                </span>
+              </motion.div>
+
+              {/* CSS masonry columns */}
+              <div className="columns-2 md:columns-3 gap-3 md:gap-4">
+                {displayedImages.map((src, index) => (
+                  <div key={src} className="mb-3 md:mb-4 break-inside-avoid">
+                    <GalleryImage
+                      src={src}
+                      index={index}
+                      onClick={() => handleImageClick(index)}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Load More */}
+              {hasMoreImages && (
+                <LoadMoreButton
+                  remaining={galleryImages.length - visibleCount}
+                  progress={loadedProgress}
+                  onClick={loadMore}
+                />
+              )}
+
+              {/* All loaded state */}
+              {!hasMoreImages && visibleCount > IMAGES_PER_PAGE && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-16 flex items-center gap-0"
+                >
+                  <div className="flex-1 h-[1px] bg-white/[0.05]" />
+                  <span
+                    className="px-8 text-[10px] tracking-[0.4em] uppercase font-light"
+                    style={{ color: "rgba(201,169,97,0.35)" }}
+                  >
+                    All {galleryImages.length} images displayed
+                  </span>
+                  <div className="flex-1 h-[1px] bg-white/[0.05]" />
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+      {/* end gridRef wrapper */}
+
+      {/* Bottom section rule */}
+      <div className="max-w-8xl mx-auto px-5 md:px-8 lg:px-12 mt-24 md:mt-32 pb-24 md:pb-32">
+        <div
+          className="h-[1px]"
+          style={{
+            background:
+              "linear-gradient(to right, transparent, rgba(255,255,255,0.04), transparent)",
+          }}
+        />
       </div>
 
       {/* Lightbox */}

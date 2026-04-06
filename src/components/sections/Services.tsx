@@ -1,12 +1,16 @@
 "use client";
-import { useRef } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, useInView, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+/* ─── Data ────────────────────────────────────────────────────────────────── */
 const services = [
   {
     id: "residential",
     subtitle: "Residential",
+    category: "Residential",
     title: "Bespoke Living Spaces",
     tagline: "Where Luxury Meets Lifestyle, Room by Room.",
     description:
@@ -26,6 +30,7 @@ const services = [
   {
     id: "commercial",
     subtitle: "Office Interiors",
+    category: "Commercial",
     title: "Refined Workspaces",
     tagline: "Workspaces That Think, Create, and Inspire.",
     description:
@@ -45,6 +50,7 @@ const services = [
   {
     id: "hospitality",
     subtitle: "Hospitality",
+    category: "Glass Work",
     title: "Immersive Experiences",
     tagline: "Spaces That Welcome, Experiences That Stay.",
     description:
@@ -63,15 +69,191 @@ const services = [
   },
 ];
 
+/* ─── Animated Checkmark SVG ─────────────────────────────────────────────── */
+function AnimatedCheckmark({
+  inView,
+  delay,
+}: {
+  inView: boolean;
+  delay: number;
+}) {
+  return (
+    <motion.svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      className="flex-shrink-0 mt-0.5"
+      aria-hidden="true"
+    >
+      <motion.path
+        d="M2 7.2L5.5 11L12 3"
+        stroke="#C9A961"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={
+          inView ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }
+        }
+        transition={{ duration: 0.55, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+      />
+    </motion.svg>
+  );
+}
+
+/* ─── Category Pill ───────────────────────────────────────────────────────── */
+function CategoryPill({ label, inView }: { label: string; inView: boolean }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={inView ? { opacity: 1, x: 0 } : {}}
+      transition={{ duration: 0.6, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="absolute top-4 left-4 z-30 flex items-center gap-1.5 px-3 py-1.5 border border-brand-gold/40 backdrop-blur-sm bg-brand-black/60"
+    >
+      <div className="w-1 h-1 bg-brand-gold/70 rotate-45 flex-shrink-0" />
+      <span className="text-brand-gold/80 text-[9px] font-light tracking-[0.35em] uppercase">
+        {label}
+      </span>
+    </motion.div>
+  );
+}
+
+/* ─── Explore Service Link ────────────────────────────────────────────────── */
+function ExploreServiceLink({ href }: { href: string }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <Link
+      href={href}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="inline-flex items-center gap-3 group"
+    >
+      <span className="relative text-white/60 text-xs md:text-sm font-light tracking-[0.2em] uppercase transition-colors duration-500 group-hover:text-brand-goldLight">
+        Explore Service
+        {/* underline that grows from left on hover */}
+        <span
+          className="absolute left-0 -bottom-0.5 h-[1px] bg-brand-gold/60 block transition-all duration-500 ease-out"
+          style={{ width: hovered ? "100%" : "0%" }}
+        />
+      </span>
+      <motion.span
+        animate={{ x: hovered ? 4 : 0 }}
+        transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className="flex items-center text-brand-gold/60 group-hover:text-brand-gold transition-colors duration-500"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M2.5 7h9M8 3.5L11.5 7 8 10.5"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </motion.span>
+    </Link>
+  );
+}
+
+/* ─── Step Indicator ──────────────────────────────────────────────────────── */
+function StepIndicator({ activeIndex }: { activeIndex: number }) {
+  const numRef = useRef<HTMLSpanElement>(null);
+
+  /* GSAP number ticker — counts from 0 up to activeIndex + 1 on each change */
+  useEffect(() => {
+    if (!numRef.current) return;
+    const target = activeIndex + 1;
+    const obj = { val: 0 };
+    gsap.to(obj, {
+      val: target,
+      duration: 1,
+      delay: 0.3,
+      ease: "power2.out",
+      onUpdate: () => {
+        if (numRef.current) {
+          numRef.current.textContent = String(Math.round(obj.val)).padStart(
+            2,
+            "0",
+          );
+        }
+      },
+    });
+  }, [activeIndex]);
+
+  return (
+    <div className="hidden lg:flex fixed left-6 xl:left-10 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-3 pointer-events-none">
+      {services.map((_, i) => (
+        <div key={i} className="flex flex-col items-center gap-1">
+          <motion.div
+            animate={{
+              height: i === activeIndex ? 32 : 12,
+              backgroundColor:
+                i === activeIndex
+                  ? "rgba(201,169,97,0.8)"
+                  : i < activeIndex
+                    ? "rgba(201,169,97,0.3)"
+                    : "rgba(255,255,255,0.1)",
+            }}
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="w-[1px]"
+          />
+          <motion.div
+            animate={{
+              scale: i === activeIndex ? 1 : 0.6,
+              backgroundColor:
+                i === activeIndex
+                  ? "rgba(201,169,97,0.9)"
+                  : i < activeIndex
+                    ? "rgba(201,169,97,0.4)"
+                    : "rgba(255,255,255,0.15)",
+              boxShadow:
+                i === activeIndex ? "0 0 8px rgba(201,169,97,0.5)" : "none",
+            }}
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="w-1.5 h-1.5 rounded-full"
+          />
+        </div>
+      ))}
+
+      <div className="mt-2 flex flex-col items-center gap-0.5">
+        <span
+          ref={numRef}
+          className="text-brand-gold/60 text-[9px] font-light tracking-[0.2em]"
+        >
+          {String(activeIndex + 1).padStart(2, "0")}
+        </span>
+        <div className="w-[1px] h-3 bg-brand-gold/20" />
+        <span className="text-white/20 text-[9px] font-light tracking-[0.2em]">
+          {String(services.length).padStart(2, "0")}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Service Card ────────────────────────────────────────────────────────── */
 function ServiceCard({
   service,
   index,
+  onActiveChange,
 }: {
   service: (typeof services)[0];
   index: number;
+  onActiveChange: (index: number) => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true, margin: "-80px" });
+  const [imageHovered, setImageHovered] = useState(false);
+  const imageRevealRef = useRef<HTMLDivElement>(null);
+  const spotlightRef = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({
     target: cardRef,
@@ -82,6 +264,40 @@ function ServiceCard({
   const secondaryY = useTransform(scrollYProgress, [0, 1], [60, -60]);
 
   const isLeft = service.align === "left";
+
+  /* GSAP clip-path image reveal */
+  useEffect(() => {
+    if (!isInView || !imageRevealRef.current) return;
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.fromTo(
+      imageRevealRef.current,
+      { clipPath: "inset(100% 0% 0% 0%)" },
+      {
+        clipPath: "inset(0% 0% 0% 0%)",
+        duration: 1.4,
+        ease: "power4.out",
+        delay: 0.2,
+      },
+    );
+  }, [isInView]);
+
+  /* IntersectionObserver drives the step indicator */
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          onActiveChange(index);
+        }
+      },
+      { threshold: 0.4 },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [index, onActiveChange]);
 
   return (
     <div ref={cardRef} className="relative py-20 md:py-32 lg:py-40">
@@ -103,7 +319,7 @@ function ServiceCard({
             isLeft ? "" : "direction-rtl"
           }`}
         >
-          {/* Image Column */}
+          {/* ── Image Column ─────────────────────────────────────────────── */}
           <div
             className={`lg:col-span-7 relative ${
               isLeft ? "lg:order-1" : "lg:order-2"
@@ -120,9 +336,40 @@ function ServiceCard({
                   ease: [0.25, 0.46, 0.45, 0.94],
                 }}
                 className="relative overflow-hidden group"
+                onMouseEnter={() => setImageHovered(true)}
+                onMouseLeave={() => {
+                  setImageHovered(false);
+                  if (spotlightRef.current) {
+                    gsap.to(spotlightRef.current, {
+                      opacity: 0,
+                      duration: 0.4,
+                      ease: "power2.out",
+                    });
+                  }
+                }}
+                onMouseMove={(e) => {
+                  if (!spotlightRef.current) return;
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = e.clientX - rect.left;
+                  const y = e.clientY - rect.top;
+                  const xPct = (x / rect.width) * 100;
+                  const yPct = (y / rect.height) * 100;
+                  gsap.to(spotlightRef.current, {
+                    opacity: 0.15,
+                    background: `radial-gradient(circle 180px at ${xPct}% ${yPct}%, rgba(255,255,255,0.18) 0%, rgba(201,169,97,0.08) 50%, transparent 100%)`,
+                    duration: 0.3,
+                    ease: "power2.out",
+                  });
+                }}
               >
+                {/* Floating category label pill */}
+                <CategoryPill label={service.category} inView={isInView} />
+
                 <motion.div style={{ y: imageY }}>
-                  <div className="aspect-[4/3] lg:aspect-[16/10] overflow-hidden">
+                  <div
+                    ref={imageRevealRef}
+                    className="aspect-[4/3] lg:aspect-[16/10] overflow-hidden"
+                  >
                     <img
                       src={service.image}
                       alt={service.title}
@@ -132,8 +379,24 @@ function ServiceCard({
                   </div>
                 </motion.div>
 
-                {/* Overlay on hover */}
+                {/* GSAP spotlight shine overlay */}
+                <div
+                  ref={spotlightRef}
+                  className="absolute inset-0 pointer-events-none z-10 opacity-0"
+                />
+
+                {/* Base hover tint */}
                 <div className="absolute inset-0 bg-brand-gold/0 group-hover:bg-brand-gold/5 transition-colors duration-700" />
+
+                {/* Gold vignette overlay — radial, edges only */}
+                <div
+                  className="absolute inset-0 pointer-events-none transition-opacity duration-700"
+                  style={{
+                    opacity: imageHovered ? 1 : 0,
+                    background:
+                      "radial-gradient(ellipse at center, transparent 35%, rgba(201,169,97,0.07) 70%, rgba(201,169,97,0.14) 100%)",
+                  }}
+                />
               </motion.div>
 
               {/* Secondary floating image */}
@@ -160,15 +423,14 @@ function ServiceCard({
                         className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110"
                       />
                     </div>
-
-                    {/* Gold corner accent */}
+                    {/* Gold corner accents */}
                     <div className="absolute top-3 left-3 w-6 h-6 border-t border-l border-brand-gold/40" />
                     <div className="absolute bottom-3 right-3 w-6 h-6 border-b border-r border-brand-gold/40" />
                   </div>
                 </motion.div>
               </motion.div>
 
-              {/* Accent image - small */}
+              {/* Accent image — small */}
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -187,7 +449,7 @@ function ServiceCard({
                 </div>
               </motion.div>
 
-              {/* Decorative line */}
+              {/* Decorative vertical line */}
               <motion.div
                 initial={{ height: 0 }}
                 animate={isInView ? { height: "5rem" } : {}}
@@ -199,7 +461,7 @@ function ServiceCard({
             </div>
           </div>
 
-          {/* Content Column */}
+          {/* ── Content Column ───────────────────────────────────────────── */}
           <div
             className={`lg:col-span-5 ${isLeft ? "lg:order-2" : "lg:order-1"}`}
             style={{ direction: "ltr" }}
@@ -262,7 +524,7 @@ function ServiceCard({
                 {service.description}
               </motion.p>
 
-              {/* Features */}
+              {/* Features — animated gold checkmarks */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -276,9 +538,12 @@ function ServiceCard({
                       initial={{ opacity: 0, x: -10 }}
                       animate={isInView ? { opacity: 1, x: 0 } : {}}
                       transition={{ duration: 0.5, delay: 0.9 + i * 0.1 }}
-                      className="flex items-center gap-3 group/feature"
+                      className="flex items-start gap-2.5 group/feature"
                     >
-                      <div className="w-1.5 h-1.5 bg-brand-gold/40 rotate-45 transition-colors duration-300 group-hover/feature:bg-brand-gold flex-shrink-0" />
+                      <AnimatedCheckmark
+                        inView={isInView}
+                        delay={1.0 + i * 0.12}
+                      />
                       <span className="text-white/40 text-xs md:text-sm font-light tracking-wider transition-colors duration-300 group-hover/feature:text-white/70">
                         {feature}
                       </span>
@@ -287,7 +552,17 @@ function ServiceCard({
                 </div>
               </motion.div>
 
-              {/* CTA */}
+              {/* "Explore Service" CTA — underline grows from left, arrow slides right */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.8, delay: 1.05 }}
+                className="mb-6 md:mb-8"
+              >
+                <ExploreServiceLink href={service.link} />
+              </motion.div>
+
+              {/* Original "Explore More" animated-line CTA */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -342,16 +617,47 @@ function ServiceCard({
   );
 }
 
+/* ─── Services Section ────────────────────────────────────────────────────── */
 export default function Services() {
   const headerRef = useRef<HTMLDivElement>(null);
   const headerInView = useInView(headerRef, { once: true, margin: "-80px" });
+  const [activeIndex, setActiveIndex] = useState(0);
+  const sectionTitleRef = useRef<HTMLHeadingElement>(null);
+
+  const handleActiveChange = useCallback((index: number) => {
+    setActiveIndex(index);
+  }, []);
+
+  /* GSAP horizontal scroll entrance on section heading */
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+    if (!sectionTitleRef.current) return;
+    gsap.fromTo(
+      sectionTitleRef.current,
+      { x: -60, opacity: 0 },
+      {
+        x: 0,
+        opacity: 1,
+        duration: 1.2,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: sectionTitleRef.current,
+          start: "top 85%",
+          once: true,
+        },
+      },
+    );
+  }, []);
 
   return (
     <section
       id="services"
       className="relative bg-gradient-to-b from-brand-dark via-brand-black to-brand-black overflow-hidden"
     >
-      {/* Section Header */}
+      {/* Scrolling step indicator — fixed to viewport left edge */}
+      <StepIndicator activeIndex={activeIndex} />
+
+      {/* ── Section Header ─────────────────────────────────────────────── */}
       <div ref={headerRef} className="pt-24 md:pt-32 lg:pt-40 pb-8 md:pb-16">
         <div className="max-w-8xl mx-auto px-5 md:px-8 lg:px-12">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
@@ -369,6 +675,7 @@ export default function Services() {
               </motion.div>
 
               <motion.h2
+                ref={sectionTitleRef}
                 initial={{ opacity: 0, y: 40 }}
                 animate={headerInView ? { opacity: 1, y: 0 } : {}}
                 transition={{
@@ -412,12 +719,17 @@ export default function Services() {
         </div>
       </div>
 
-      {/* Service Cards */}
+      {/* ── Service Cards ──────────────────────────────────────────────── */}
       {services.map((service, index) => (
-        <ServiceCard key={service.id} service={service} index={index} />
+        <ServiceCard
+          key={service.id}
+          service={service}
+          index={index}
+          onActiveChange={handleActiveChange}
+        />
       ))}
 
-      {/* Bottom CTA */}
+      {/* ── Bottom CTA ─────────────────────────────────────────────────── */}
       <div className="py-20 md:py-28 text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

@@ -8,6 +8,8 @@ import "./globals.css";
 import { generateSchema } from "../lib/seo";
 import Navbar from "../components/layout/Navbar";
 
+import PageLoader from "../components/ui/PageLoader";
+
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
@@ -104,6 +106,8 @@ export default function RootLayout({
       <body
         className={`${manrope.variable} ${playfair.variable} ${cormorant.variable} bg-brand-black text-white antialiased font-sans`}
       >
+        <PageLoader />
+
         <Navbar />
         {children}
 
